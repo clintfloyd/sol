@@ -1,0 +1,80 @@
+body{
+  background: black;
+
+  .container{
+    &.cover{
+    }
+    &.white{
+      background: #fff;
+    }
+    padding: 20px;
+
+    div{
+      &.autoSuggest{
+        position: relative;
+      input{
+        &.searchProd{
+          width: 100%;
+          padding: 10px;
+          border-radius: 4px;
+          border: 1px solid silver;
+        }
+      }
+      .suggestion{
+        position: absolute;
+        width: 100%;
+        background: #fff;
+        top: 43px;
+        box-shadow: 0 10px 10px rgba(0,0,0,.1);
+        > ul{
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          border: 1px solid silver;
+          > li{
+            border-bottom: 1px solid silver;
+            &:last-child{
+              border-bottom: none;
+            }
+            > a{
+              display: block;
+              padding: 5px;
+            }
+          }
+        }
+      }
+      }
+    }
+
+    .tableData{
+      min-height: 200px;
+    }
+
+    table{
+      tr{
+        td{
+          vertical-align: middle;
+        }
+      }
+      tfoot{
+        tr{
+          td{
+            font-weight: bold;
+            background: #343a40;
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+
+  textarea{
+    display: none;
+  }
+
+  img.sigImage{
+    width: 500px;
+    display: block;
+  }
+
+}
