@@ -2,7 +2,7 @@
 require('mysql/MysqliDb.php');
 $db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');
 $db->autoReconnect = true;
-$db->join("products prod", "item.sku=prod.sku", "LEFT");
+$db->join("products prod", "prod.sku=item.sku", "LEFT");
 $db->where("transfer_id",$_GET['id']);
 $results = $db->get('transfer_request_items item', null, "item.id, prod.sku, prod.parent_name, prod.product_name, item.qty, item.transfer_id, item.received, item.remaining, item.date_added");
 
@@ -32,11 +32,13 @@ if($transferStatus==='completed'){
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="container cover white">
+  <?php include("header.php"); ?>
+  <div class="container white">
     <form method="post" action="receive_stocks_signature.php">
       <table class="table table-bordered">
         <thead class="thead-dark">
           <tr>
+            <th>ID</th>
             <th>SKU</th>
             <th>Item Name</th>
             <th class="text-center">Requested</th>
@@ -65,6 +67,7 @@ if($transferStatus==='completed'){
               foreach($itemMovement as $im){
                 ?>
                 <tr>
+                  <td><?php echo $im['id']; ?></td>
                   <td><?php echo $result['sku']; ?></td>
                   <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
                   <td class="text-center qtyContainer"></td>
@@ -91,6 +94,7 @@ if($transferStatus==='completed'){
               ?>
 
               <tr class="table-success">
+                <td><?php echo $result['id']; ?></td>
                 <td><?php echo $result['sku']; ?></td>
                 <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
                 <td class="text-center origQTY"> <?php

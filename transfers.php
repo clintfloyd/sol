@@ -22,7 +22,17 @@ $date = date("r");
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="container cover white">
+  <?php include("header.php"); ?>
+  <div class="container white">
+    <ul class="nav justify-content-center mb-3">
+      <li class="nav-item">
+        <a class="nav-link active" href="#">All  Stock Requests</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="transfer_request.php">Stock Request</a>
+      </li>
+    </ul>
+
     <form method="post" action="transfer_request.php">
       <table class="table table-bordered">
         <thead class="thead-dark">

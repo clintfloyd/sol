@@ -9,7 +9,6 @@ $date = date("r");
 
 
 if($_POST){
-  print_r($_POST);
 
   $data = [];
 
@@ -27,15 +26,13 @@ if($_POST){
   $ids = $db->insertMulti('transfer_request_items', $data);
 
 
+
   $main_request = array(
                          "request_id"=>$_POST['transfer_id'][0],
                          "location_id"=>$_POST['location_id'][0],
                        );
 
   $ids = $db->insert('transfer_request', $main_request);
-
-  print_r($data);
-
   header("Location: transfers.php");
   die();
 }
@@ -53,9 +50,10 @@ if($_POST){
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="container cover white">
+  <?php include("header.php"); ?>
+  <div class="container white">
     <div class="autoSuggest">
-      <input type="text" class="searchProd mb-4" />
+      <input type="text" class="searchProd mb-4" placeholder="Search Item Here..." />
       <div id="suggesstion-box" class="suggestion">
       </div>
     </div>
