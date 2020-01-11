@@ -1,7 +1,8 @@
 <?php
 require('mysql/MysqliDb.php');
-$db = new MysqliDb ('localhost', 'root', '', 'bd_inventory');
+$db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');
 $db->autoReconnect = true;
+  $db->orderBy("id", "asc");
 $results = $db->get('transfer_request');
 
 $location_id = "1";

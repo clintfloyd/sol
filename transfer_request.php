@@ -1,6 +1,6 @@
 <?php
 require('mysql/MysqliDb.php');
-$db = new MysqliDb ('localhost', 'root', '', 'bd_inventory');
+$db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');
 $db->autoReconnect = true;
 $results = $db->get('products');
 
@@ -75,7 +75,7 @@ if($_POST){
         <tfoot>
           <tr>
             <td colspan="2" class="text-right">Total:</td>
-            <td colspan="2" class="totalItems">0</td>
+            <td colspan="3" class="totalItems">0</td>
           </tr>
         </tfoot>
       </table>
@@ -151,7 +151,7 @@ if($_POST){
           html += '<input type="hidden" name="sku[]" value="'+sku+'" />';
           html += '<input type="hidden" name="product_id[]" value="'+id+'" />';
           html += '</td>';
-          html += '<td><a href="javascript:;" class="btn btn-outline btn-danger">Delete</a></td>';
+          html += '<td><a href="javascript:;" tabindex="-1" class="btn btn-outline btn-danger">Delete</a></td>';
           html += '</tr>';
           $(".tableData").append(html);
           $(".suggestion").html("");

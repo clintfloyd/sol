@@ -1,6 +1,6 @@
 <?php
 require('mysql/MysqliDb.php');
-$db = new MysqliDb ('localhost', 'root', '', 'bd_inventory');
+$db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');
 $db->autoReconnect = true;
 $db->join("products prod", "item.sku=prod.sku", "LEFT");
 $db->where("transfer_id",$_GET['id']);
@@ -16,6 +16,7 @@ $transferStatus = $db->get('transfer_request tr', null, "tr.status");
 $transferStatus = $transferStatus[0]['status'];
 if($transferStatus==='completed'){
   $db->where("transfer_id",$_GET['id']);
+  $db->orderBy("id", "desc");
   $transDataComplete = $db->get('transfer_confirmation');
 }
 ?>
@@ -40,6 +41,7 @@ if($transferStatus==='completed'){
             <th>Item Name</th>
             <th class="text-center">Requested</th>
             <th class="text-center">Received</th>
+            <th class="text-center">Total Received</th>
             <th class="text-center">Remaining</th>
             <th class="text-center">Date</th>
           </tr>
@@ -47,9 +49,8 @@ if($transferStatus==='completed'){
         <tbody class="">
           <?php
           $totalQTY = 0;
-          $totalReceived = 0;
           foreach($results as $result){
-
+            $totalReceived = 0;
             //query
             $db->where("sku",$result['sku']);
             $db->Where("transfer_id",$result['transfer_id']);
@@ -66,14 +67,13 @@ if($transferStatus==='completed'){
                 <tr>
                   <td><?php echo $result['sku']; ?></td>
                   <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
-                  <td class="text-center qtyContainer"> <?php echo $tmpQTY; ?></td>
+                  <td class="text-center qtyContainer"></td>
+                  <td class="text-center qtyContainer"></td>
                   <td class="text-center">
                     <?php echo $im['received']; ?>
                   </td>
-                  <td class="text-center">
-                    <?php echo $im['remaining']; ?>
-                  </td>
-                  <td><?php echo date("j F Y - g:i A", strtotime($im['date']) ); ?></td>
+                  <td>&nbsp;</td>
+                  <td colspan="" class="text-center"><?php echo date("j F Y - g:i A", strtotime($im['date']) ); ?></td>
                 <?php
 
                   // $rem = ($im['remaining']);
@@ -85,17 +85,68 @@ if($transferStatus==='completed'){
 
             }
             $totalQTY += $result['qty'];
+
+            if( $totalReceived >= $result['qty']){
+
+              ?>
+
+              <tr class="table-success">
+                <td><?php echo $result['sku']; ?></td>
+                <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
+                <td class="text-center origQTY"> <?php
+                  $computation =  $result['qty']-$totalReceived;
+                  if($computation <= 0){
+                    $computation = 0;
+                  }
+                  echo $result['qty'];
+                ?></td>
+                <td class="text-center receivedSoFar">
+                  <?php
+                  echo $totalReceived;
+                  ?>
+                </td>
+                <td class="text-center">
+                  <?php
+                  echo $totalReceived;
+                  ?>
+                </td>
+                <td class="text-center">
+                  <?php
+                  $tmpTotalReceivedComputed = $result['qty']-$totalReceived;
+
+                  if($tmpTotalReceivedComputed<0){
+                    ?>
+                    <span class="badge badge-info">Excess: </span>
+                    <span><?php echo abs($tmpTotalReceivedComputed); ?></span>
+                    <?php
+                  }else{
+                    echo "0";
+                  }
+                  ?>
+                </td>
+                <td class="text-center"><?php echo date("j F Y - g:i A", strtotime($result['date_added']) ); ?></td>
+              </tr>
+
+              <?php
+
+
+            }else{
           ?>
           <tr>
             <td><?php echo $result['sku']; ?></td>
             <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
-            <td class="text-center qtyContainer"> <?php
+            <td class="text-center origQTY"> <?php
               $computation =  $result['qty']-$totalReceived;
               if($computation <= 0){
                 $computation = 0;
               }
-              echo $computation;
+              echo $result['qty'];
             ?></td>
+            <td class="text-center ">
+              <?php
+              echo $totalReceived;
+              ?>
+            </td>
             <td class="text-center">
               <?php if($transferStatus == "completed"){ ?>
                 <?php echo $result['received']; ?>
@@ -110,21 +161,25 @@ if($transferStatus==='completed'){
             <td class="text-center">
               <?php if($transferStatus == "completed"){ ?>
                 <?php echo $result['remaining']; ?>
-              <?php } else{ ?>
-                <input type="number" class="text-center remaining" tabIndex="-1" min="1" name="remaining[]" value="0" readonly />
+              <?php } else{
+
+                $tmpRem = $result['qty']-$totalReceived;
+                ?>
+                <input type="number" class="text-center remaining" tabIndex="-1" min="1" name="remaining[]" value="<?php echo $tmpRem; ?>" readonly />
               <?php } ?>
 
             </td>
             <td><?php echo date("j F Y - g:i A", strtotime($result['date_added']) ); ?></td>
           </tr>
-        <?php } ?>
+        <?php }
+          } ?>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="2" class="text-right">TOTAL:</td>
             <td class="text-center"><?php echo $totalQTY; ?></td>
             <td class="text-center totalReceived">0</td>
-            <td class="text-left" colspan="2">0</td>
+            <td class="text-left" colspan="3">0</td>
           </tr>
         </tfoot>
       </table>
@@ -164,12 +219,16 @@ if($transferStatus==='completed'){
 
         $(".received").keyup(function(){
             var obj = $(this);
-            var reqObj = parseInt(obj.parent().prev("td.qtyContainer").html());
+            var reqObj = parseInt(obj.parent().prev().prev().html());
+            var receivedObj = parseInt(obj.parent().prev().html());
+
+            var receivedItems = parseInt(reqObj)-parseInt(receivedObj);
+
             var remObj = obj.parent().next("td").children(".remaining");
             var objValue = parseInt(obj.val());
             //compute remaining
             if(!isNaN(objValue)){
-              var rem = reqObj - objValue;
+              var rem = receivedItems - objValue;
               rem = rem < 0 ? 0 : rem;
               remObj.val(rem);
             }
