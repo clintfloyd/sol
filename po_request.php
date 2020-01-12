@@ -8,14 +8,14 @@ require('mysql_connection.php');
 $db->autoReconnect = true;
 $results = $db->get('products');
 
-$vendors = $db->get('locations');
+$vendors = $db->get('vendors');
 
 $location_id = "1";
 $date = date("r");
 
 
 if($_POST){
-
+  print_r($_POST);
   $data = [];
 
   foreach($_POST['sku'] as $index=>$value){
@@ -29,9 +29,9 @@ if($_POST){
                     );
   }
 
-  $ids = $db->insertMulti('transfer_request_items', $data);
+  $ids = $db->insertMulti('po_request_items', $data);
 
-
+  print_r($ids);
 
   $main_request = array(
                          "vendor_id"=>$_POST['vendor_id'],
@@ -40,8 +40,9 @@ if($_POST){
                          "location_id"=>$_POST['location_id'][0],
                        );
 
-  $ids = $db->insert('transfer_request', $main_request);
-  header("Location: transfers.php");
+  $ids = $db->insert('po_request', $main_request);
+
+  header("Location: po.php");
   die();
 }
 
@@ -49,7 +50,7 @@ if($_POST){
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Transfer Request</title>
+  <title>Purchase Order Request</title>
   <link rel="stylesheet" href="css/bootstrap-reboot.min.css" />
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/bootstrap-grid.min.css" />
@@ -60,19 +61,14 @@ if($_POST){
 <body>
   <?php include("header.php"); ?>
   <div class="container white">
-
-    <h1>Stock Request</h1>
-    <hr />
-
-    <form method="post" action="transfer_request.php">
-
+    <form method="post" action="po_request.php">
     <div class="row mb-4">
       <div class="col-8">
-        <strong>Request Stocks From:</strong><br />
+        <strong>Vendor</strong><br />
         <select class="vendor form-control" name="vendor_id" required="required">
           <option value="">Select Vendor</option>
           <?php foreach($vendors as $vendor){ ?>
-            <option value="<?php echo $vendor['id']; ?>"><?php echo $vendor['location_name']; ?></option>
+            <option value="<?php echo $vendor['id']; ?>"><?php echo $vendor['company_name']; ?></option>
           <?php } ?>
         </select>
       </div>
@@ -83,17 +79,21 @@ if($_POST){
     </div>
 
     <div class="autoSuggest">
+      <strong>Items</strong><br />
       <input type="text" class="searchProd mb-4" placeholder="Search Item Here..." />
       <div id="suggesstion-box" class="suggestion">
       </div>
     </div>
+
       <table class="table table-bordered">
         <thead class="thead-dark">
           <tr>
             <th>SKU</th>
             <th>Category</th>
             <th>Name</th>
+            <th class="text-center">Vendor Price</th>
             <th class="text-center">Qty</th>
+            <th class="text-center">Subtotal</th>
             <th style="width: 50px;" class="text-center">&nbsp;</th>
           </tr>
         </thead>
@@ -101,8 +101,10 @@ if($_POST){
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="text-right">Total:</td>
-            <td colspan="3" class="totalItems">0</td>
+            <td colspan="4" class="text-right">Total:</td>
+            <td colspan="" class="totalQTY text-center">0</td>
+            <td colspan="" class="totalPrice text-right">0</td>
+            <td colspan="" class="text-right" style="text-align: right;">&nbsp;</td>
           </tr>
         </tfoot>
       </table>
@@ -149,6 +151,7 @@ if($_POST){
                       html += "<li><a href='javascript:;' class='selectData' "+
                                 "data-parent='"+element.parent_name+"' "+
                                 "data-name='"+element.product_name+"' "+
+                                "data-vendorprice='"+element.supplier_price_php+"' "+
                                 "data-id='"+element.catalog_id+"' "+
                                 "data-sku='"+element.sku+"' "+
                                 "data-price='"+element.price+"' "+
@@ -167,17 +170,19 @@ if($_POST){
 
       	});
 
-        addData = function(cat,name,id,price,sku){
+        addData = function(cat,name,id,price,sku, vendor_price){
           html = '<tr>';
           html += '<td>'+sku+'</td>';
           html += '<td>'+cat+'</td>';
           html += '<td>'+name+'</td>';
+          html += '<td class="text-right vendorprice" data-value="'+vendor_price+'">'+vendor_price+'</td>';
           html += '<td class="text-center"><input type="number" name="qty[]" min="1" value="1" class="qty text-center" />';
           html += '<input type="hidden" name="location_id[]" value="<?php echo $location_id; ?>" />';
           html += '<input type="hidden" name="transfer_id[]" value="<?php echo sha1($location_id . $date); ?>" />';
           html += '<input type="hidden" name="sku[]" value="'+sku+'" />';
           html += '<input type="hidden" name="product_id[]" value="'+id+'" />';
           html += '</td>';
+          html += '<td class="subprice text-right">0</td>';
           html += '<td><a href="javascript:;" tabindex="-1" class="btn btn-outline btn-danger">Delete</a></td>';
           html += '</tr>';
           $(".tableData").append(html);
@@ -189,9 +194,44 @@ if($_POST){
           cat = $(this).attr("data-parent");
           name = $(this).attr("data-name");
           price = $(this).attr("data-price");
+          vendor_price = $(this).attr("data-vendorprice");
           id = $(this).attr("data-id");
           sku = $(this).attr("data-sku");
-          addData(cat,name,id,price,sku);
+          addData(cat,name,id,price,sku,vendor_price);
+        });
+
+
+        computeTotal = function(){
+          //compute qty
+          var totalQty = 0;
+          $(".qty").each(function(){
+            totalQty += parseInt($(this).val());
+          });
+
+          $(".totalQTY").html(totalQty);
+
+          //compute total
+          var subPriceTotal = 0;
+          $(".subprice").each(function(){
+            subPriceTotal += parseInt($(this).html());
+          });
+
+          $(".totalPrice").html(subPriceTotal);
+
+
+        }
+
+
+        $(document).on("keyup",".qty", function(){
+          var obj = $(this);
+          var qty = obj.val();
+          var price = obj.parent().prev(".vendorprice").attr("data-value");
+          var subprice = obj.parent().next(".subprice");
+
+          var subPriceComputation = parseFloat(price)*parseInt(qty);
+          subprice.html(subPriceComputation);
+
+          computeTotal();
         });
 
       });

@@ -7,12 +7,12 @@ require('mysql/MysqliDb.php');
 require('mysql_connection.php');
 $db->autoReconnect = true;
 
-$db->where('transfer_id', $_GET['id']);
-$db->delete('transfer_request_items');
+
+$data = array("is_readonly"=>"true");
+$db->where ('request_id', $_GET['id']);
 
 
-$db->where('request_id', $_GET['id']);
-$db->delete('transfer_request');
+$db->update ('po_request', $data);
 
-
-header("Location: transfers.php");
+header("Location: po.php");
+die();

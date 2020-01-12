@@ -1,6 +1,8 @@
 body{
   background: black;
-
+  &.login{
+    height: calc(100vh);
+  }
   .container{
     &.cover{
       max-width: 43em;
@@ -84,6 +86,26 @@ body{
   img.sigImage{
     width: 500px;
     display: block;
+  }
+
+  .login_form{
+    position: fixed;
+    height: 250px;
+    width: 300px;
+    background: #fff;
+    border-radius: 4px;
+    padding: 20px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+    margin-right: auto;
+    &.signup{
+      height: 510px;
+    }
   }
 
 }

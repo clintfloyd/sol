@@ -1,6 +1,10 @@
 <?php
+session_start();
+if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
+  header("Location: login.php");
+}
 require('mysql/MysqliDb.php');
-$db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');
+require('mysql_connection.php');
 $db->autoReconnect = true;
   $db->orderBy("id", "asc");
 $results = $db->get('transfer_request');
@@ -40,7 +44,7 @@ $date = date("r");
             <th>Transfer ID</th>
             <th class="text-center">Date Added</th>
             <th class="text-center">Status</th>
-            <th style="width: 200px;">&nbsp;</th>
+            <th style="width: 300px;">&nbsp;</th>
           </tr>
         </thead>
         <tbody class="">
@@ -54,6 +58,7 @@ $date = date("r");
               <?php }else{ ?>
                 <a href="receive_stocks.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-success">Receive</a>
                 <a href="delete.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-danger">Delete</a>
+                <a href="generate_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary">PDF</a>
               <?php } ?>
             </td>
           </tr>

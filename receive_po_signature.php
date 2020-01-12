@@ -22,7 +22,7 @@ if( isset($_POST['hasSig']) ){
               "status" => $status
     );
     $db->where ('id', $_POST['id'][$key]);
-    $transItem = $db->update ('transfer_request_items', $data);
+    $transItem = $db->update ('po_request_items', $data);
 
 
     $secondData = array(
@@ -31,7 +31,7 @@ if( isset($_POST['hasSig']) ){
         "remaining" => $_POST['remaining'][$key],
         "received" => $_POST['received'][$key]
     );
-    $confItem = $db->insert ("transfer_movement_per_item", $secondData);
+    $confItem = $db->insert ("po_movement_per_item", $secondData);
 
 
 
@@ -44,16 +44,16 @@ if( isset($_POST['hasSig']) ){
               "signature" => $_POST['sig'],
               "transfer_id" => $_POST['transfer_id'][0]
   );
-  $confItem = $db->insert ("transfer_confirmation", $sigData);
+  $confItem = $db->insert ("po_confirmation", $sigData);
 
   //update transfer status
   $transData = array(
               "status" => $mainStatus
   );
   $db->where ('request_id', $_POST['transfer_id'][0]);
-  $reqItem = $db->update ('transfer_request', $transData);
+  $reqItem = $db->update ('po_request', $transData);
   if($confItem && $reqItem){
-    header("Location: transfers.php");
+    header("Location: po.php");
     die();
   }
 
@@ -75,7 +75,7 @@ echo " .";
 </head>
 <body style="background: #000;">
   <div class="container cover">
-    <form method="post" id="sigForm" action="receive_stocks_signature.php">
+    <form method="post" id="sigForm" action="receive_po_signature.php">
       <div id="signature-pad" class="signature-pad">
     <div class="signature-pad--body">
       <canvas></canvas>

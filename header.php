@@ -6,6 +6,7 @@
         <a class="nav-link active" href="./">Home</a>
         <!-- <a class="nav-link active" href="./stocks.php">Stocks</a> -->
         <a class="nav-link active" href="./transfers.php">Transfers</a>
+        <a class="nav-link active" href="./po.php">Purchase Order</a>
         <a class="nav-link active" href="./logout.php">Logout</a>
       </nav>
     </div>

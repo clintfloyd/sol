@@ -1,6 +1,10 @@
 <?php
+session_start();
+if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
+  header("Location: login.php");
+}
 require('mysql/MysqliDb.php');
-$db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');
+require('mysql_connection.php');
 $db->autoReconnect = true;
 $db->where ('parent_name', "%" . $_POST['q'] . "%" , "like");
 $db->orWhere ('product_name', "%" . $_POST['q'] . "%" , "like");

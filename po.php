@@ -6,44 +6,12 @@ if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
 require('mysql/MysqliDb.php');
 require('mysql_connection.php');
 $db->autoReconnect = true;
-$results = $db->get('products');
-
-$vendors = $db->get('locations');
+  $db->orderBy("id", "asc");
+$results = $db->get('po_request');
 
 $location_id = "1";
 $date = date("r");
 
-
-if($_POST){
-
-  $data = [];
-
-  foreach($_POST['sku'] as $index=>$value){
-    $data[] = array( "sku" => $_POST['sku'][$index],
-                     "product_id" => $_POST['product_id'][$index],
-                     "location_id" => $_POST['location_id'][$index],
-                     "transfer_id" => $_POST['transfer_id'][$index],
-                     "status" => "pending",
-                     "qty" => $_POST['qty'][$index],
-                     "remaining" => $_POST['qty'][$index]
-                    );
-  }
-
-  $ids = $db->insertMulti('transfer_request_items', $data);
-
-
-
-  $main_request = array(
-                         "vendor_id"=>$_POST['vendor_id'],
-                         "due_date"=>$_POST['due_date'],
-                         "request_id"=>$_POST['transfer_id'][0],
-                         "location_id"=>$_POST['location_id'][0],
-                       );
-
-  $ids = $db->insert('transfer_request', $main_request);
-  header("Location: transfers.php");
-  die();
-}
 
 ?>
 <!DOCTYPE html>
@@ -60,57 +28,58 @@ if($_POST){
 <body>
   <?php include("header.php"); ?>
   <div class="container white">
-
-    <h1>Stock Request</h1>
-    <hr />
+    <ul class="nav justify-content-center mb-3">
+      <li class="nav-item">
+        <a class="nav-link active" href="po.php">All  Purchase Requests</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="po_request.php">Purchase Order</a>
+      </li>
+    </ul>
 
     <form method="post" action="transfer_request.php">
-
-    <div class="row mb-4">
-      <div class="col-8">
-        <strong>Request Stocks From:</strong><br />
-        <select class="vendor form-control" name="vendor_id" required="required">
-          <option value="">Select Vendor</option>
-          <?php foreach($vendors as $vendor){ ?>
-            <option value="<?php echo $vendor['id']; ?>"><?php echo $vendor['location_name']; ?></option>
-          <?php } ?>
-        </select>
-      </div>
-      <div class="col-4">
-        <strong>Due Date</strong><br />
-        <input type="date" class="form-control" required="required" name="due_date" />
-      </div>
-    </div>
-
-    <div class="autoSuggest">
-      <input type="text" class="searchProd mb-4" placeholder="Search Item Here..." />
-      <div id="suggesstion-box" class="suggestion">
-      </div>
-    </div>
       <table class="table table-bordered">
         <thead class="thead-dark">
           <tr>
-            <th>SKU</th>
-            <th>Category</th>
-            <th>Name</th>
-            <th class="text-center">Qty</th>
-            <th style="width: 50px;" class="text-center">&nbsp;</th>
+            <th>Transfer ID</th>
+            <th class="text-center">Date Added</th>
+            <th class="text-center">Status</th>
+            <th style="width: 150px;">&nbsp;</th>
           </tr>
         </thead>
-        <tbody class="tableData">
-        </tbody>
-        <tfoot>
+        <tbody class="">
+          <?php foreach($results as $result){ ?>
           <tr>
-            <td colspan="2" class="text-right">Total:</td>
-            <td colspan="3" class="totalItems">0</td>
-          </tr>
-        </tfoot>
-      </table>
-      <div class="text-right">
-        <button type="submit" class="btn btn-success">Submit Order</button>
-      </div>
+            <td><a href="receive_po.php?id=<?php echo $result['request_id']; ?>">#000<?php echo $result['id']; ?></a></td>
+            <td class="text-center"><?php echo date("j F Y - g:i A", strtotime($result['date_added'])); ?></td>
+            <td class="text-center"><?php echo $result['status']; ?></td>
+            <td class="text-right">
+              <?php if($result['status'] == "completed"){ ?>
+                <a href="generate_po_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary btn-block">PDF</a>
+              <?php }else{
 
-      <input type="hidden" name="request_id" value="<?php echo sha1($location_id . $date); ?>" />
+                if($result['is_readonly'] == "true"){
+                  ?>
+                    <a href="receive_po.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-success btn-block">Receive</a>
+                    <a href="generate_po_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary btn-block">Save as PDF</a>
+                  <?php
+                }else{
+                  ?>
+                    <a href="receive_po.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-success btn-block">Receive</a>
+                    <a href="generate_po_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary btn-block">Save as PDF</a>
+                    <a href="lock_po.php?id=<?php echo $result['request_id']; ?>" class="btn btn-primary btn-block">Mark as Sent</a>
+                    <hr />
+                    <a href="delete.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-danger btn-block">Delete</a>
+                  <?php
+                  }
+                }
+
+              ?>
+            </td>
+          </tr>
+        <?php } ?>
+        </tbody>
+      </table>
 
     </form>
   </div>
@@ -172,13 +141,13 @@ if($_POST){
           html += '<td>'+sku+'</td>';
           html += '<td>'+cat+'</td>';
           html += '<td>'+name+'</td>';
-          html += '<td class="text-center"><input type="number" name="qty[]" min="1" value="1" class="qty text-center" />';
-          html += '<input type="hidden" name="location_id[]" value="<?php echo $location_id; ?>" />';
-          html += '<input type="hidden" name="transfer_id[]" value="<?php echo sha1($location_id . $date); ?>" />';
-          html += '<input type="hidden" name="sku[]" value="'+sku+'" />';
-          html += '<input type="hidden" name="product_id[]" value="'+id+'" />';
+          html += '<td><input type="number" name="qty[]" min="1" value="1" class="qty text-center" />';
+          html += '<input type="text" name="location_id[]" value="<?php echo $location_id; ?>" />';
+          html += '<input type="text" name="transfer_id[]" value="<?php echo sha1($location_id . $date); ?>" />';
+          html += '<input type="text" name="sku[]" value="'+sku+'" />';
+          html += '<input type="text" name="product_id[]" value="'+id+'" />';
           html += '</td>';
-          html += '<td><a href="javascript:;" tabindex="-1" class="btn btn-outline btn-danger">Delete</a></td>';
+          html += '<td><a href="javascript:;" class="btn btn-outline btn-danger">Delete</a></td>';
           html += '</tr>';
           $(".tableData").append(html);
           $(".suggestion").html("");

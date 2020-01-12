@@ -8,20 +8,20 @@ require('mysql_connection.php');
 $db->autoReconnect = true;
 $db->join("products prod", "prod.sku=item.sku", "LEFT");
 $db->where("transfer_id",$_GET['id']);
-$results = $db->get('transfer_request_items item', null, "item.id, prod.sku, prod.parent_name, prod.supplier_price_php, prod.product_name, item.qty, item.transfer_id, item.received, item.remaining, item.date_added");
+$results = $db->get('po_request_items item', null, "item.id, prod.sku, prod.parent_name, prod.supplier_price_php, prod.product_name, item.qty, item.transfer_id, item.received, item.remaining, item.date_added");
 
 $location_id = "1";
 $date = date("r");
 
 
 $db->where("request_id",$_GET['id']);
-$transferStatus = $db->get('transfer_request tr', null, "tr.status");
+$transferStatus = $db->get('po_request tr', null, "tr.status");
 
 $transferStatus = $transferStatus[0]['status'];
 if($transferStatus==='completed'){
   $db->where("transfer_id",$_GET['id']);
   $db->orderBy("id", "desc");
-  $transDataComplete = $db->get('transfer_confirmation');
+  $transDataComplete = $db->get('po_confirmation');
 }
 ?>
 <!DOCTYPE html>
@@ -38,8 +38,7 @@ if($transferStatus==='completed'){
 <body>
   <?php include("header.php"); ?>
   <div class="container white">
-    <form method="post" action="receive_stocks_signature.php">
-
+    <form method="post" action="receive_po_signature.php">
       <table class="table table-bordered">
         <thead class="thead-dark">
           <tr>
@@ -61,7 +60,7 @@ if($transferStatus==='completed'){
             //query
             $db->where("sku",$result['sku']);
             $db->Where("transfer_id",$result['transfer_id']);
-            $itemMovement = $db->get('transfer_movement_per_item');
+            $itemMovement = $db->get('po_movement_per_item');
             $itemMovementCount = $db->count;
             if($itemMovementCount >= 1){
               $currentReq = ($result['qty']);
@@ -98,7 +97,7 @@ if($transferStatus==='completed'){
 
               ?>
 
-              <tr class="table-success">
+              <tr class="bg-success text-white">
                 <td><?php echo $result['id']; ?></td>
                 <td><?php echo $result['sku']; ?></td>
                 <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
@@ -178,19 +177,12 @@ if($transferStatus==='completed'){
               <?php } ?>
 
             </td>
+            <td>&nbsp;</td>
             <td><?php echo date("j F Y - g:i A", strtotime($result['date_added']) ); ?></td>
           </tr>
         <?php }
           } ?>
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" class="text-right">TOTAL:</td>
-            <td class="text-center"><?php echo $totalQTY; ?></td>
-            <td class="text-center totalReceived">0</td>
-            <td class="text-left" colspan="3">0</td>
-          </tr>
-        </tfoot>
       </table>
       <div class="text-right">
         <?php if($transferStatus == "completed"){ ?>
