@@ -34,6 +34,7 @@ if($_POST){
 
 
   $main_request = array(
+                         "requested_location"=>$_SESSION['location'],
                          "vendor_id"=>$_POST['vendor_id'],
                          "due_date"=>$_POST['due_date'],
                          "request_id"=>$_POST['transfer_id'][0],
@@ -70,10 +71,13 @@ if($_POST){
       <div class="col-8">
         <strong>Request Stocks From:</strong><br />
         <select class="vendor form-control" name="vendor_id" required="required">
-          <option value="">Select Vendor</option>
-          <?php foreach($vendors as $vendor){ ?>
+          <option value="">Select a store</option>
+          <?php foreach($vendors as $vendor){
+            if($vendor['id'] != $_SESSION['location']){
+            ?>
             <option value="<?php echo $vendor['id']; ?>"><?php echo $vendor['location_name']; ?></option>
-          <?php } ?>
+          <?php }
+        }?>
         </select>
       </div>
       <div class="col-4">

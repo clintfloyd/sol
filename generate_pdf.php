@@ -43,6 +43,14 @@ $poDetails = $db->get('transfer_request');
 $poNumber = date("Ymd", strtotime($poDetails[0]['date'])) . "-00" . $poDetails[0]['id'];
 $poDate = date("j F Y", strtotime($poDetails[0]['date']));
 
+
+$db->where("id",$poDetails[0]['vendor_id']);
+$locations = $db->get('locations');
+
+
+$db->where("id",$poDetails[0]['requested_location']);
+$from = $db->get('locations');
+
 use Dompdf\Dompdf;
 
 
@@ -55,6 +63,8 @@ $html = file_get_contents("pdf/pdf-transfer.php");
 $html = str_replace("##BODY##",$tableBody, $html);
 $html = str_replace("##PONUMBER##",$poNumber, $html);
 $html = str_replace("##DATE##",$poDate, $html);
+$html = str_replace("##TRANSFERFROM##",$locations[0]['location_name'], $html);
+$html = str_replace("##TRANSFERTO##",$from[0]['location_name'], $html);
 
 $dompdf->loadHtml($html);
 
