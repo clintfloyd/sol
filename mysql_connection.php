@@ -1,2 +1,2 @@
 <?php
-$db = new MysqliDb ('localhost', 'root', '', 'bd_inventory');
+$db = new MysqliDb ('localhost', 'root', 'root', 'bd_inventory');

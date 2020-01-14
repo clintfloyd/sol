@@ -5,12 +5,12 @@ if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
 }
 require('mysql/MysqliDb.php');
 require('mysql_connection.php');
+$location_id = $_SESSION['location'];
 $db->autoReconnect = true;
 $results = $db->get('products');
 
 $vendors = $db->get('vendors');
 
-$location_id = "1";
 $date = date("r");
 
 

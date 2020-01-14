@@ -5,11 +5,11 @@ if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
 }
 require('mysql/MysqliDb.php');
 require('mysql_connection.php');
+$location_id = $_SESSION['location'];
 $db->autoReconnect = true;
   $db->orderBy("id", "asc");
 $results = $db->get('po_request');
 
-$location_id = "1";
 $date = date("r");
 
 

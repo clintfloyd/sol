@@ -5,12 +5,15 @@ if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
 }
 require('mysql/MysqliDb.php');
 require('mysql_connection.php');
+
+$location_id = $_SESSION['location'];
+
 $db->autoReconnect = true;
 $db->join("products prod", "prod.sku=item.sku", "LEFT");
 $db->where("transfer_id",$_GET['id']);
 $results = $db->get('transfer_request_items item', null, "item.id, prod.sku, prod.parent_name, prod.supplier_price_php, prod.product_name, item.qty, item.transfer_id, item.received, item.remaining, item.date_added");
 
-$location_id = "1";
+
 $date = date("r");
 
 
