@@ -1,5 +1,6 @@
 <?php
 session_start();
+global $db;
 if(!isset($_SESSION['isLoggedin']) && $_SESSION['isLoggedin'] != "true"){
   header("Location: login.php");
 }
@@ -20,12 +21,14 @@ $date = date("r");
 $db->where("request_id",$_GET['id']);
 $order_details = $db->get('transfer_request');
 
+
 $transferStatus = $order_details[0]['status'];
 if($transferStatus==='completed'){
   $db->where("transfer_id",$_GET['id']);
   $db->orderBy("id", "desc");
   $transDataComplete = $db->get('transfer_confirmation');
 }
+
 function getLocationName($id){
   global $db;
   $db->where("id",$id);
@@ -47,12 +50,10 @@ function getLocationName($id){
 <body>
   <?php include("header.php"); ?>
   <div class="container white">
-
     <div style="margin-bottom: 50px;">
-      <h4>Stocks Received From:</h4>
+      <h4>Stock Request From:</h4>
       <h1><?php echo getLocationName($order_details[0]['vendor_id']); ?></h1>
     </div>
-
     <form method="post" action="receive_stocks_signature.php">
 
       <table class="table table-bordered">
@@ -157,6 +158,7 @@ function getLocationName($id){
             }else{
           ?>
           <tr>
+            <td><?php echo $result['id']; ?></td>
             <td><?php echo $result['sku']; ?></td>
             <td><?php echo $result['parent_name']; ?> - <?php echo $result['product_name']; ?></td>
             <td class="text-center origQTY"> <?php
@@ -172,40 +174,16 @@ function getLocationName($id){
               ?>
             </td>
             <td class="text-center">
-              <?php if($transferStatus == "completed"){ ?>
-                <?php echo $result['received']; ?>
-              <?php } else{ ?>
-                <input type="number" class="text-center received" min="0" name="received[]" />
-                <input type="hidden" name="id[]" value="<?php echo $result["id"]; ?>" readonly/>
-                <input type="hidden" name="sku[]" value="<?php echo $result["sku"]; ?>" readonly/>
-                <input type="hidden" name="transfer_id[]" value="<?php echo $result["transfer_id"]; ?>" readonly/>
-              <?php } ?>
-
+              &nbsp;
             </td>
             <td class="text-center">
-              <?php if($transferStatus == "completed"){ ?>
-                <?php echo $result['remaining']; ?>
-              <?php } else{
-
-                $tmpRem = $result['qty']-$totalReceived;
-                ?>
-                <input type="number" class="text-center remaining" tabIndex="-1" min="1" name="remaining[]" value="<?php echo $tmpRem; ?>" readonly />
-              <?php } ?>
-
+              &nbsp;
             </td>
             <td><?php echo date("j F Y - g:i A", strtotime($result['date_added']) ); ?></td>
           </tr>
         <?php }
           } ?>
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" class="text-right">TOTAL:</td>
-            <td class="text-center"><?php echo $totalQTY; ?></td>
-            <td class="text-center totalReceived">0</td>
-            <td class="text-left" colspan="3">0</td>
-          </tr>
-        </tfoot>
       </table>
       <div class="text-right">
         <?php if($transferStatus == "completed"){ ?>
@@ -214,7 +192,7 @@ function getLocationName($id){
             <img class="sigImage" src="<?php echo $transDataComplete[0]['signature']; ?>" />
           </div>
         <?php } else{ ?>
-          <button stype="submit" class="btn btn-success">Save and Sync to Stocks</button>
+
         <?php } ?>
       </div>
     </form>

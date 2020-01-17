@@ -15,6 +15,12 @@ if($_POST){
     $_SESSION['user'] = $users[0]['name'];
     $_SESSION['email'] = $users[0]['email'];
     $_SESSION['location'] = $users[0]['location'];
+
+    $db->where("id", $users[0]['location']);
+    $locs = $db->get("locations");
+
+    $_SESSION['location_name'] = $locs[0]['location_name'];
+
     header("Location: index.php");
     die();
   }

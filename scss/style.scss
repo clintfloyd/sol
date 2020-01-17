@@ -5,7 +5,7 @@ body{
   }
   .container{
     &.cover{
-      max-width: 43em;
+      max-width: 58em;
     }
     &.white{
       background: #fff;
@@ -106,6 +106,13 @@ body{
     &.signup{
       height: 510px;
     }
+  }
+
+  .receivables{
+    padding: 20px;
+    background: #f5f3e4;
+    border-radius: 4px;
+    margin-bottom: 50px;
   }
 
 }

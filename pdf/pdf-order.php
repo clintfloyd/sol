@@ -38,7 +38,7 @@
     <table style="width: 100%;">
       <tr>
         <td><img src="images/soleil-logo.png" /></td>
-        <td valign="top" style="text-align: right;"><h1>Transfer Request</h1></td>
+        <td valign="top" style="text-align: right;"><h1>Stock Transfer</h1></td>
       </tr>
       <tr>
         <td style="font-size: 10px; vertical-align: top; color: #dbae27;">
