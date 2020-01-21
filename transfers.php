@@ -51,6 +51,9 @@ function getLocationName($id){
       <li class="nav-item">
         <a class="nav-link" href="transfer_request.php">Stock Request</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="transfer_stocks.php">Transfer Stocks</a>
+      </li>
     </ul>
 
 
