@@ -10,14 +10,30 @@ $location_id = $_SESSION['location'];
 
 $db->autoReconnect = true;
 $db->where("location_id",$location_id);
-  $db->orderBy("id", "asc");
+$db->orderBy("id", "asc");
 $results = $db->get('transfer_request');
 
 
 $db->where("vendor_id",$location_id);
-$db->where("status != 'completed'");
+$db->where("status !='completed'");
+$db->where("type ='transfer'");
 $db->orderBy("id", "asc");
 $reqs = $db->get('transfer_request');
+
+
+$db->where("vendor_id",$location_id);
+$db->where("type","requesting");
+$db->where("status !='completed'");
+$db->orderBy("id", "asc");
+$stockRequest = $db->get('transfer_request');
+
+
+$db->where("vendor_id",$location_id);
+$db->where("type","transfer");
+$db->where("status ='completed'");
+$db->orderBy("id", "asc");
+$receivedStocks = $db->get('transfer_request');
+
 
 $date = date("r");
 
@@ -57,10 +73,78 @@ function getLocationName($id){
     </ul>
 
 
+    <?php if(count($stockRequest) > 0) { ?>
+
+      <div class="receivables">
+        <h2>Stock Request</h2>
+
+        <table class="table table-bordered">
+          <thead class="thead-dark">
+            <tr>
+              <th>Transfer ID</th>
+              <th class="text-center">From</th>
+              <th class="text-center">To</th>
+              <th class="text-center">Date Added</th>
+            </tr>
+          </thead>
+          <tbody class="">
+            <?php foreach($stockRequest as $result){ ?>
+            <tr>
+              <td><a href="view.php?id=<?php echo $result['request_id']; ?>">#000<?php echo $result['id']; ?></a></td>
+              <td class="text-center"><?php echo getLocationName($result['location_id']); ?></td>
+              <td class="text-center"><?php echo getLocationName($result['vendor_id']); ?></td>
+              <td class="text-center"><?php echo date("j F Y - g:i A", strtotime($result['date_added'])); ?></td>
+            </tr>
+          <?php } ?>
+          </tbody>
+        </table>
+      </div>
+  <?php } ?>
+
+
     <?php if(count($reqs) > 0) { ?>
 
       <div class="receivables">
-        <h2>Received Requests</h2>
+        <h2>Stocks Transfer</h2>
+
+        <table class="table table-bordered">
+          <thead class="thead-dark">
+            <tr>
+              <th>Transfer ID</th>
+              <th class="text-center">From</th>
+              <th class="text-center">To</th>
+              <th class="text-center">Date Added</th>
+              <th class="text-center">Status</th>
+              <th class="text-center">&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody class="">
+            <?php foreach($reqs as $result){ ?>
+            <tr>
+              <td><a href="receive_stock_transfer.php?id=<?php echo $result['request_id']; ?>">#000<?php echo $result['id']; ?></a></td>
+              <td class="text-center"><?php echo getLocationName($result['location_id']); ?></td>
+              <td class="text-center"><?php echo getLocationName($result['vendor_id']); ?></td>
+              <td class="text-center"><?php echo date("j F Y - g:i A", strtotime($result['date_added'])); ?></td>
+              <td class="text-center"><?php echo $result['status']; ?></td>
+              <td>
+                <?php if($result['status'] == "completed"){ ?>
+                <?php }else if($result['status'] == 'transfer'){ ?>
+                  hello
+                <?php }else{ ?>
+                  <a href="receive_stock_transfer.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-success">Receive</a>
+                <?php } ?>
+              </td>
+            </tr>
+          <?php } ?>
+          </tbody>
+        </table>
+      </div>
+  <?php } ?>
+
+    <?php if(count($receivedStocks) > 0) { ?>
+
+      <div class="">
+        <h2>Received Stocks</h2>
 
         <table class="table table-bordered">
           <thead class="thead-dark">
@@ -73,9 +157,9 @@ function getLocationName($id){
             </tr>
           </thead>
           <tbody class="">
-            <?php foreach($reqs as $result){ ?>
+            <?php foreach($receivedStocks as $result){ ?>
             <tr>
-              <td><a href="view.php?id=<?php echo $result['request_id']; ?>">#000<?php echo $result['id']; ?></a></td>
+              <td><a href="received_stocks_details.php?id=<?php echo $result['request_id']; ?>">#000<?php echo $result['id']; ?></a></td>
               <td class="text-center"><?php echo getLocationName($result['location_id']); ?></td>
               <td class="text-center"><?php echo getLocationName($result['vendor_id']); ?></td>
               <td class="text-center"><?php echo date("j F Y - g:i A", strtotime($result['date_added'])); ?></td>
@@ -87,7 +171,7 @@ function getLocationName($id){
       </div>
   <?php } ?>
 
-    <h2>Current Requests</h2>
+    <h2>Requests</h2>
 
     <table class="table table-bordered">
       <thead class="thead-dark">
@@ -110,11 +194,31 @@ function getLocationName($id){
           <td class="text-center"><?php echo $result['status']; ?></td>
           <td class="text-right">
             <?php if($result['status'] == "completed"){ ?>
-            <?php }else{ ?>
+            <?php }else{
+              if( $result['requested_location'] ==  $_SESSION['location']){
+                if($result['requested_location'] == "requesting"){
+                  ?>
+                  <a href="receive_stocks.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-success">Receive</a>
+                  <?php
+                }
+                ?>
+                <a href="delete.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-danger">Delete</a>
+                <a href="generate_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary">PDF</a>
+                <?php
+
+              }else if($result['vendor_id'] != $_SESSION['location']){
+
+                ?>
+                <a href="delete.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-danger">Delete</a>
+                <a href="generate_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary">PDF</a>
+              <?php
+
+              ?>
               <a href="receive_stocks.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-success">Receive</a>
-              <a href="delete.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-danger">Delete</a>
               <a href="generate_pdf.php?id=<?php echo $result['request_id']; ?>" class="btn btn-outline-primary">PDF</a>
-            <?php } ?>
+            <?php
+              }
+          } ?>
           </td>
         </tr>
       <?php } ?>

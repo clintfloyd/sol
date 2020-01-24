@@ -41,6 +41,7 @@ if($_POST){
                          "due_date"=>$_POST['due_date'],
                          "request_id"=>$_POST['transfer_id'][0],
                          "location_id"=>$_POST['location_id'][0],
+                         "type"=>"transfer"
                        );
 
   $ids = $db->insert('transfer_request', $main_request);
@@ -67,7 +68,7 @@ if($_POST){
     <h1>Transfer Stocks</h1>
     <hr />
 
-    <form method="post" action="transfer_request.php">
+    <form method="post" action="transfer_stocks.php">
 
     <div class="row mb-4">
       <div class="col-8">

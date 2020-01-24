@@ -41,6 +41,7 @@ if($_POST){
                          "due_date"=>$_POST['due_date'],
                          "request_id"=>$_POST['transfer_id'][0],
                          "location_id"=>$_POST['location_id'][0],
+                         "type"=>"requesting"
                        );
 
   $ids = $db->insert('transfer_request', $main_request);
